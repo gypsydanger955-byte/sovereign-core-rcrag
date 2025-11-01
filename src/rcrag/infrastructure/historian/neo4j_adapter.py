@@ -85,3 +85,68 @@ class Neo4jHistorianAdapter:
             rows = [row["id"] async for row in result]
         # The first id is the starting record; include entire chain
         return rows
+
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10,
+        offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """Search records with optional filters and pagination."""
+        where_clauses = []
+        params: Dict[str, Any] = {"limit": limit, "offset": offset}
+        
+        if filters and "kind" in filters:
+            where_clauses.append("n.kind = $kind")
+            params["kind"] = filters["kind"]
+        
+        if query:
+            where_clauses.append("(n.text CONTAINS $query OR n.kind CONTAINS $query)")
+            params["query"] = query
+        
+        where_str = " AND ".join(where_clauses) if where_clauses else "true"
+        cypher = f"MATCH (n:Record) WHERE {where_str} RETURN n SKIP $offset LIMIT $limit"
+        
+        out: List[Dict[str, Any]] = []
+        async with self._driver.session() as session:
+            result = await session.run(cypher, **params)
+            async for row in result:
+                node = row["n"]
+                props = dict(node)  # type: ignore
+                out.append({
+                    "id": props.pop("id", None),
+                    "kind": props.pop("kind", None),
+                    "data": props
+                })
+        return out
+
+    async def query_records(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10,
+        offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """Query records with filters and pagination."""
+        where_clauses = []
+        params: Dict[str, Any] = {"limit": limit, "offset": offset}
+        
+        if filters and "kind" in filters:
+            where_clauses.append("n.kind = $kind")
+            params["kind"] = filters["kind"]
+        
+        where_str = " AND ".join(where_clauses) if where_clauses else "true"
+        cypher = f"MATCH (n:Record) WHERE {where_str} RETURN n SKIP $offset LIMIT $limit"
+        
+        out: List[Dict[str, Any]] = []
+        async with self._driver.session() as session:
+            result = await session.run(cypher, **params)
+            async for row in result:
+                node = row["n"]
+                props = dict(node)  # type: ignore
+                out.append({
+                    "id": props.pop("id", None),
+                    "kind": props.pop("kind", None),
+                    "data": props
+                })
+        return out

@@ -61,3 +61,20 @@ class MockHistorianAdapter(HistorianPort):
 
     async def query_by_provenance(self, source_id: str) -> List[HistorianRecord]:
         return await self._inner.query_by_provenance(source_id)
+
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[dict] = None,
+        limit: int = 10,
+        offset: int = 0
+    ) -> List[HistorianRecord]:
+        return await self._inner.search(query=query, filters=filters, limit=limit, offset=offset)
+
+    async def query_records(
+        self,
+        filters: Optional[dict] = None,
+        limit: int = 10,
+        offset: int = 0
+    ) -> List[HistorianRecord]:
+        return await self._inner.query_records(filters=filters, limit=limit, offset=offset)

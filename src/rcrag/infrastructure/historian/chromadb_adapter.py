@@ -71,3 +71,83 @@ class ChromaDBHistorianAdapter:
         for i in range(len(ids)):
             out.append({"id": ids[i], "document": docs[i] if i < len(docs) else None, "metadata": metas[i] if i < len(metas) else None})
         return out
+
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10,
+        offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """Search with optional filters and pagination."""
+        # Build where clause from filters
+        where = {}
+        if filters:
+            if "kind" in filters:
+                where["kind"] = filters["kind"]
+        
+        # If query provided, use semantic search
+        if query:
+            q = self._collection.query(
+                query_texts=[query],
+                n_results=limit + offset,
+                where=where if where else None
+            )
+            ids = (q.get("ids") or [[]])[0]
+            docs = (q.get("documents") or [[]])[0]
+            metas = (q.get("metadatas") or [[]])[0]
+        else:
+            # No query, just filter-based retrieval
+            res = self._collection.get(where=where if where else None)
+            ids = res.get("ids") or []
+            docs = res.get("documents") or []
+            metas = res.get("metadatas") or []
+        
+        # Apply pagination
+        start = max(0, offset)
+        end = start + max(0, limit)
+        ids = ids[start:end]
+        docs = docs[start:end]
+        metas = metas[start:end]
+        
+        out: List[Dict[str, Any]] = []
+        for i in range(len(ids)):
+            out.append({
+                "id": ids[i],
+                "document": docs[i] if i < len(docs) else None,
+                "metadata": metas[i] if i < len(metas) else None
+            })
+        return out
+
+    async def query_records(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10,
+        offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """Query records with filters and pagination."""
+        where = {}
+        if filters:
+            if "kind" in filters:
+                where["kind"] = filters["kind"]
+        
+        res = self._collection.get(where=where if where else None)
+        ids = res.get("ids") or []
+        docs = res.get("documents") or []
+        metas = res.get("metadatas") or []
+        
+        # Apply pagination
+        start = max(0, offset)
+        end = start + max(0, limit)
+        ids = ids[start:end]
+        docs = docs[start:end]
+        metas = metas[start:end]
+        
+        out: List[Dict[str, Any]] = []
+        for i in range(len(ids)):
+            out.append({
+                "id": ids[i],
+                "document": docs[i] if i < len(docs) else None,
+                "metadata": metas[i] if i < len(metas) else None
+            })
+        return out

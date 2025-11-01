@@ -40,7 +40,8 @@ class InMemoryHistorianAdapter(HistorianPort):
         self,
         query: Optional[str] = None,
         filters: Optional[Dict[str, Any]] = None,
-        limit: int = 10
+        limit: int = 10,
+        offset: int = 0
     ) -> List[HistorianRecord]:
         """Search records with optional query string and filters."""
         async with self._lock:
@@ -63,12 +64,16 @@ class InMemoryHistorianAdapter(HistorianPort):
             
             # Sort by created_at desc
             results.sort(key=lambda r: getattr(r, "created_at", None), reverse=True)
-            return results[:max(0, limit)]
+            # Apply pagination
+            start = max(0, offset)
+            end = start + max(0, limit)
+            return results[start:end]
 
     async def query_records(
         self,
         filters: Optional[Dict[str, Any]] = None,
-        limit: int = 10
+        limit: int = 10,
+        offset: int = 0
     ) -> List[HistorianRecord]:
         """Query records with filters (kind, metadata, etc.)."""
         async with self._lock:
@@ -82,4 +87,7 @@ class InMemoryHistorianAdapter(HistorianPort):
             
             # Sort by created_at desc
             results.sort(key=lambda r: getattr(r, "created_at", None), reverse=True)
-            return results[:max(0, limit)]
+            # Apply pagination
+            start = max(0, offset)
+            end = start + max(0, limit)
+            return results[start:end]

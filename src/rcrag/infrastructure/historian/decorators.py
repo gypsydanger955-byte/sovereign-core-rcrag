@@ -2,7 +2,7 @@ import asyncio
 import logging
 import random
 import time
-from typing import List, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 from ...domain.models import HistorianRecord
 from ...domain.ports.historian_port import HistorianPort
@@ -26,6 +26,21 @@ class HistorianDecorator(HistorianPort):
     async def query_by_provenance(self, source_id: str) -> List[HistorianRecord]:
         return await self._inner.query_by_provenance(source_id)
 
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        return await self._inner.search(query, filters, limit)
+
+    async def query_records(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        return await self._inner.query_records(filters, limit)
+
 
 class TimeoutDecorator(HistorianDecorator):
     """Applies a timeout to HistorianPort operations."""
@@ -45,6 +60,21 @@ class TimeoutDecorator(HistorianDecorator):
 
     async def query_by_provenance(self, source_id: str) -> List[HistorianRecord]:
         return await asyncio.wait_for(super().query_by_provenance(source_id), timeout=self._timeout)
+
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        return await asyncio.wait_for(super().search(query, filters, limit), timeout=self._timeout)
+
+    async def query_records(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        return await asyncio.wait_for(super().query_records(filters, limit), timeout=self._timeout)
 
 
 class RetryDecorator(HistorianDecorator):
@@ -89,6 +119,21 @@ class RetryDecorator(HistorianDecorator):
 
     async def query_by_provenance(self, source_id: str) -> List[HistorianRecord]:
         return await self._with_retry(lambda: self._inner.query_by_provenance(source_id))
+
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        return await self._with_retry(lambda: self._inner.search(query, filters, limit))
+
+    async def query_records(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        return await self._with_retry(lambda: self._inner.query_records(filters, limit))
 
 
 class LoggingDecorator(HistorianDecorator):
@@ -136,3 +181,18 @@ class LoggingDecorator(HistorianDecorator):
 
     async def query_by_provenance(self, source_id: str) -> List[HistorianRecord]:
         return await self._log_call("query_by_provenance", lambda: self._inner.query_by_provenance(source_id))
+
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        return await self._log_call("search", lambda: self._inner.search(query, filters, limit))
+
+    async def query_records(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        return await self._log_call("query_records", lambda: self._inner.query_records(filters, limit))

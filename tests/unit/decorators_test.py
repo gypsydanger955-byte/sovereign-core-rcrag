@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import pytest
 
@@ -39,6 +39,23 @@ class FlakyAdapter(HistorianPort):
     async def query_by_provenance(self, source_id: str) -> List[HistorianRecord]:
         return []
 
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        await asyncio.sleep(self.delay)
+        return []
+
+    async def query_records(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        await asyncio.sleep(self.delay)
+        return []
+
 
 class SlowAdapter(HistorianPort):
     def __init__(self, sleep: float = 1.0):
@@ -57,6 +74,23 @@ class SlowAdapter(HistorianPort):
         return []
 
     async def query_by_provenance(self, source_id: str) -> List[HistorianRecord]:
+        await asyncio.sleep(self.sleep)
+        return []
+
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        await asyncio.sleep(self.sleep)
+        return []
+
+    async def query_records(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
         await asyncio.sleep(self.sleep)
         return []
 

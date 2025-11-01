@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from ..models import HistorianRecord
 
 
@@ -24,4 +24,23 @@ class HistorianPort(ABC):
     @abstractmethod
     async def query_by_provenance(self, source_id: str) -> List[HistorianRecord]:
         """Find all records that reference a source_id in provenance_ids."""
+        pass
+
+    @abstractmethod
+    async def search(
+        self,
+        query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        """Search records with optional query string and filters."""
+        pass
+
+    @abstractmethod
+    async def query_records(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10
+    ) -> List[HistorianRecord]:
+        """Query records with filters (kind, metadata, etc.)."""
         pass

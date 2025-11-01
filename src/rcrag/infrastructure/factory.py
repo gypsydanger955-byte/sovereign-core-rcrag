@@ -69,8 +69,8 @@ def build_historian(settings: Settings, fallback_historian: Any = None) -> Any:
     if adapter is not None and settings.cache_enabled and CacheHistorianDecorator is not None:
         adapter = CacheHistorianDecorator(
             adapter,
-            ttl_seconds=settings.cache_ttl_seconds,
-            max_size=settings.cache_max_size,
+            ttl=settings.cache_ttl_seconds,
+            max_entries=settings.cache_max_size,
         )
 
     return adapter

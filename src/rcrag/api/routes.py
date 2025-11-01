@@ -142,7 +142,13 @@ async def get_record(record_id: str):
         if not record:
             raise HTTPException(status_code=404, detail=f"Record {record_id} not found")
         
-        return GetRecordResponse(**record)
+        return GetRecordResponse(
+            record_id=record.id,
+            content=record.content,
+            kind=record.kind,
+            metadata=record.metadata,
+            created_at=record.created_at.isoformat() if hasattr(record.created_at, 'isoformat') else str(record.created_at)
+        )
     except HTTPException:
         raise
     except Exception as e:

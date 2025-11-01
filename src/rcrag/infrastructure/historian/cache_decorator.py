@@ -193,6 +193,10 @@ class CacheHistorianDecorator(HistorianDecorator):
 
     # Explicit method overrides to fix __getattr__ bug
     
+    async def create_record(self, record: Any) -> str:
+        """Create a record (pass-through, no caching for writes)."""
+        return await self._inner.create_record(record)
+    
     async def get_record(self, record_id: str) -> Any:
         """Get a record by ID with caching."""
         return await self._cached_call(

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from src.rcrag.infrastructure.factory import build_historian
 from src.rcrag.infrastructure.config import Settings
 from src.rcrag.infrastructure.historian.inmemory_adapter import InMemoryHistorianAdapter
+from src.rcrag.domain.models import HistorianRecord
 
 
 # Request/Response models
@@ -71,11 +72,12 @@ async def store_record(request: StoreRecordRequest):
     """
     try:
         historian = get_historian()
-        record_id = await historian.store_record(
+        record = HistorianRecord(
             content=request.content,
             kind=request.kind,
             metadata=request.metadata
         )
+        record_id = await historian.create_record(record)
         return StoreRecordResponse(record_id=record_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to store record: {str(e)}")

@@ -116,9 +116,12 @@ async def search_records(
             # If no query, just filter by kind
             records = await historian.query_records(filters=filters, limit=limit)
         
+        # Serialize records to dicts for Pydantic
+        records_data = [record.to_dict() for record in records]
+        
         return SearchRecordsResponse(
-            records=records,
-            count=len(records)
+            records=records_data,
+            count=len(records_data)
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to search records: {str(e)}")
@@ -186,9 +189,12 @@ async def list_records(
             offset=offset
         )
         
+        # Serialize records to dicts for Pydantic
+        records_data = [record.to_dict() for record in records]
+        
         return SearchRecordsResponse(
-            records=records,
-            count=len(records)
+            records=records_data,
+            count=len(records_data)
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list records: {str(e)}")

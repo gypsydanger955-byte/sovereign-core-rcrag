@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 from src.rcrag.infrastructure.factory import build_historian
 from src.rcrag.infrastructure.config import Settings
+from src.rcrag.infrastructure.historian.inmemory_adapter import InMemoryHistorianAdapter
 
 
 # Request/Response models
@@ -41,10 +42,18 @@ router = APIRouter(prefix="/api/v1", tags=["historian"])
 
 
 # Initialize historian (will be done per request for now)
+# Use a module-level instance to persist data across requests
+_historian_instance = None
+
 def get_historian():
     """Get historian instance."""
-    settings = Settings()
-    return build_historian(settings)
+    global _historian_instance
+    if _historian_instance is None:
+        settings = Settings()
+        # Use InMemoryAdapter as fallback if no adapter configured
+        fallback = InMemoryHistorianAdapter()
+        _historian_instance = build_historian(settings, fallback_historian=fallback)
+    return _historian_instance
 
 
 @router.post("/records", response_model=StoreRecordResponse)
